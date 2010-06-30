@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/libcellular" constructionString="cellular">
+  <key name="Cellular.SignalStrength"></key>
+  <key name="Cellular.DataTechnology"></key>
+  <key name="Cellular.RegistrationStatus"></key>
+</provider>

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/libphone" constructionString="phone">
+  <key name="Phone.Call"></key>
+  <key name="Phone.Muted"></key>
+</provider>
