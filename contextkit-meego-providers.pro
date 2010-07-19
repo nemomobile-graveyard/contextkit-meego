@@ -6,6 +6,6 @@ SUBDIRS += battery \
     cellular \
     phone \
     internet \
+    location
 #    presence \
 #    useralarm \
-#    location
