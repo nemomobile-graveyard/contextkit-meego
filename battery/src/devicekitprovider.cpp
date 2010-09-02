@@ -63,8 +63,8 @@ void DeviceKitProvider::onFirstSubscriberAppeared()
 {
 	qDebug("first subscriber appeared!");
 	qDebug() << "DeviceKitPowerProvider " << "First subscriber appeared, connecting to DeviceKit";
-	Power deviceKit("org.freedesktop.DeviceKit.Power",
-			"/org/freedesktop/DeviceKit/Power",
+	Power deviceKit("org.freedesktop.UPower",
+			"/org/freedesktop/UPower",
 			QDBusConnection::systemBus());
 	///get my battery device:
 
@@ -72,7 +72,7 @@ void DeviceKitProvider::onFirstSubscriberAppeared()
 
 	for(int i=0; i<powerdevices.size(); i++)
 	{
-		Battery * device = new Battery("org.freedesktop.DeviceKit.Power", powerdevices[i].path() ,QDBusConnection::systemBus());
+		Battery * device = new Battery("org.freedesktop.UPower", powerdevices[i].path() ,QDBusConnection::systemBus());
 		int devicetype = device->type();
 
 		qDebug()<<"Power device type: "<< devicetype;
