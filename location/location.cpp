@@ -43,7 +43,13 @@ LocationProvider::LocationProvider()
 
 	qDebug()<<"device path: "<<devicePath;
 
-	gpsDevice = new OrgFreedesktopGypsyDeviceInterface("org.freedesktop.Gypsy", devicePath,
+	if(devicePath.isEmpty())
+	{
+		//Q_ASSERT(0);
+		gpsDevice = NULL;
+	}
+
+	else gpsDevice = new OrgFreedesktopGypsyDeviceInterface("org.freedesktop.Gypsy", devicePath,
 							   QDBusConnection::systemBus(), this);
 
 	connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
@@ -92,7 +98,7 @@ void LocationProvider::updateProperties()
 {
 	///TODO: update properties
 
-	if(!gpsDevice->isValid())
+	if(!gpsDevice || !gpsDevice->isValid())
 	{
 		qDebug("gpsDevice is not valid");
 		return;
