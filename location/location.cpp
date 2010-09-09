@@ -28,7 +28,7 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 	return new LocationProvider();
 }
 
-LocationProvider::LocationProvider()
+LocationProvider::LocationProvider():gpsDevice(NULL)
 {
 	qDebug() << "LocationProvider " << "Initializing LocationProvider provider";
 
@@ -43,18 +43,14 @@ LocationProvider::LocationProvider()
 
 	qDebug()<<"device path: "<<devicePath;
 
-	if(devicePath.isEmpty())
+	if(!devicePath.isEmpty())
 	{
-		//Q_ASSERT(0);
-		gpsDevice = NULL;
-	}
-
-	else gpsDevice = new OrgFreedesktopGypsyDeviceInterface("org.freedesktop.Gypsy", devicePath,
+		 gpsDevice = new OrgFreedesktopGypsyDeviceInterface("org.freedesktop.Gypsy", devicePath,
 							   QDBusConnection::systemBus(), this);
 
-	connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
-	connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
-
+		 connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
+		 connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
+	}
 	QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
 
@@ -133,9 +129,13 @@ QString LocationProvider::parseOutNode(QString xml)
 	query.setFocus(xml);
 	query.setQuery("/node/node");
 
-	Q_ASSERT(query.isValid());
+	if(!query.isValid())
+		return 0;
 
 	query.evaluateTo(&xml);
+
+	if(xml.isEmpty() || xml.isNull())
+		return "";
 
 	QDomDocument doc;
 	doc.setContent(xml);
