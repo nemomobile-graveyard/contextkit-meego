@@ -13,6 +13,7 @@
 #include "power_interface.h"
 
 #include <QDBusConnection>
+#include <QDBusServiceWatcher>
 
 #define OnBattery "Battery.OnBattery"
 #define ChargePercentage "Battery.ChargePercentage"
@@ -68,11 +69,32 @@ void DeviceKitProvider::onFirstSubscriberAppeared()
 			QDBusConnection::systemBus());
 	///get my battery device:
 
+	QList<QDBusObjectPath> powerdevices = deviceKit.EnumerateDevices();
+
+	Q_UNUSED(powerdevices);//throw away the result
+
 	if(!deviceKit.isValid())
 	{
 		qDebug()<<"devicekit (UPower) interface not found!";
+		qDebug()<<"error message: "<<QDBusConnection::systemBus().lastError().message();
+
+		QDBusServiceWatcher *watcher = new QDBusServiceWatcher("org.freedesktop.UPower",
+															   QDBusConnection::systemBus(),
+															   QDBusServiceWatcher::WatchForRegistration,this);
+
+		connect(watcher,SIGNAL(serviceRegistered(QString)),this,SLOT(getBattery(QString)));
+
 		return;
 	}
+
+	getBattery("");
+}
+
+void DeviceKitProvider::getBattery(QString)
+{
+	Power deviceKit("org.freedesktop.UPower",
+			"/org/freedesktop/UPower",
+			QDBusConnection::systemBus());
 
 	QList<QDBusObjectPath> powerdevices = deviceKit.EnumerateDevices();
 
@@ -98,6 +120,7 @@ void DeviceKitProvider::onFirstSubscriberAppeared()
 
 	QMetaObject::invokeMethod(this, "updateProperties", Qt::QueuedConnection);
 }
+
 
 void DeviceKitProvider::onLastSubscriberDisappeared()
 {

@@ -49,6 +49,7 @@ private slots:
     void emitSubscribeFinished();
     void onFirstSubscriberAppeared();
     void onLastSubscriberDisappeared();
+	void getBattery(QString);
 
 };
 
