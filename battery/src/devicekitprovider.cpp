@@ -68,6 +68,12 @@ void DeviceKitProvider::onFirstSubscriberAppeared()
 			QDBusConnection::systemBus());
 	///get my battery device:
 
+	if(!deviceKit.isValid())
+	{
+		qDebug()<<"devicekit (UPower) interface not found!";
+		return;
+	}
+
 	QList<QDBusObjectPath> powerdevices = deviceKit.EnumerateDevices();
 
 	for(int i=0; i<powerdevices.size(); i++)

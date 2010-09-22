@@ -1,7 +1,7 @@
 include(../../common.pri)
 
-!exists(power_interface.h):system(qdbusxml2cpp -N -c Power -p power_interface.h:power_interface.cpp DeviceKit.Power.xml)
-!exists(device_interface.h):system(qdbusxml2cpp -N -c Device -p device_interface.h:device_interface.cpp DeviceKit.Power.Device.xml)
+system(qdbusxml2cpp -N -c Power -p power_interface.h:power_interface.cpp DeviceKit.Power.xml)
+system(qdbusxml2cpp -N -c Device -p device_interface.h:device_interface.cpp DeviceKit.Power.Device.xml)
 
 TEMPLATE = lib
 CONFIG += debug \
