@@ -45,7 +45,7 @@ ConnmanProvider::ConnmanProvider()
   
   QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
-  m_networkListModel = NetworkListModel::instance();
+  m_networkListModel = new NetworkListModel();
   m_properties[networkType] = map(m_networkListModel->defaultTechnology());
   m_properties[networkState] = map(m_networkListModel->state());
   connect(m_networkListModel, SIGNAL(defaultTechnologyChanged(QString)),
