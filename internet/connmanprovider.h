@@ -37,6 +37,8 @@ public:
   
   virtual void subscribe(QSet<QString> keys);
   virtual void unsubscribe(QSet<QString> keys);
+  virtual void blockUntilReady() {}
+  virtual void blockUntilSubscribed(const QString&) {}
 
   static const QString networkType;
   static const QString networkState;

@@ -1,4 +1,4 @@
-VERSION=0.0.11
+VERSION=0.0.12
 
 TEMPLATE = subdirs
 
@@ -6,6 +6,6 @@ SUBDIRS += battery \
     cellular \
     phone \
     internet \
-    location
+#    location
 #    presence \
 #    useralarm \
