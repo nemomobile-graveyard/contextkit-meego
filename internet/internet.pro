@@ -6,7 +6,7 @@ CONFIG += debug \
           plugin
 PKGCONFIG += contextprovider-1.0 contextsubscriber-1.0
 TARGET = internet
-PKGCONFIG += connman-qt
+PKGCONFIG += connman-qt4
 target.path = $$CONTEXTKIT_SUBSCRIBER_PLUGIN_PATH
 
 SOURCES += connmanprovider.cpp

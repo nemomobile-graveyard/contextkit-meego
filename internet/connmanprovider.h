@@ -13,7 +13,7 @@
 #define CONNMANPROVIDER_H
 
 #include <iproviderplugin.h>
-#include <networklistmodel.h>
+#include <networklist.h>
 #include <QSet>
 #include <QMap>
 #include <QString>
