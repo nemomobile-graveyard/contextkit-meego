@@ -8,7 +8,7 @@
 		</method>
 		<method name="Register"/>
 		<method name="Deregister"/>
-		<method name="ProposeScan">
+		<method name="Scan">
 			<arg type="ao" direction="out"/>
 		</method>
 		<signal name="PropertyChanged">

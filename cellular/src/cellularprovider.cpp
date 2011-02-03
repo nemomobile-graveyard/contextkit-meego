@@ -27,6 +27,7 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 CellularProvider::CellularProvider()
 {
 	qDebug() << "CellularProvider" << "Initializing cellular provider";
+        registerContextDataTypes();
 	QMetaObject::invokeMethod(this,"ready",Qt::QueuedConnection);
 }
 
@@ -57,8 +58,15 @@ void CellularProvider::initProvider()
         Manager managerProxy("org.ofono",
 				  "/",
 				QDBusConnection::systemBus());
-	QVariantMap managerProps = managerProxy.GetProperties();
-        QList<QDBusObjectPath> paths = qdbus_cast<QList<QDBusObjectPath> >(managerProps["Modems"]);
+
+        QDBusPendingReply<QArrayOfPathProperties> reply;
+        QDBusPendingCallWatcher * watcher;
+
+        reply = managerProxy.GetModems();
+        watcher = new QDBusPendingCallWatcher(reply);
+        watcher->waitForFinished();
+
+        QList<QDBusObjectPath> paths = providerProcessGetModems(watcher);
 
         QString modemPath;
 	foreach (QDBusObjectPath p, paths)
@@ -79,6 +87,25 @@ void CellularProvider::initProvider()
 	{
 		qDebug() << "ProviderProvider" << "No NetworkRegistration interface found";
 	}
+}
+
+QList<QDBusObjectPath> CellularProvider::providerProcessGetModems(QDBusPendingCallWatcher *call)
+{
+    QDBusPendingReply<QArrayOfPathProperties> reply = *call;
+    QList<QDBusObjectPath> pathlist;
+    if (reply.isError()) {
+        // TODO: Handle this properly, by setting states, or disabling features
+        qWarning() << "org.ofono.Manager.GetModems() failed: " <<
+                      reply.error().message();
+    } else {
+        QArrayOfPathProperties modems = reply.value();
+        qDebug() << QString("modem count:")<<modems.count();
+        for (int i=0; i< modems.count();i++) {
+            OfonoPathProperties p = modems[i];
+            pathlist.append(QDBusObjectPath(p.path.path()));
+        }
+    }
+    return pathlist;
 }
 
 void CellularProvider::cleanProvider()
@@ -130,7 +157,7 @@ void CellularProvider::updateProperties()
 
 	QVariantMap newProps = networkProps->GetProperties();
 	props[SignalStrength] = QVariant(newProps["Strength"].toInt());
-	props[DataTechnology] = newProps["Technologies"];
+	props[DataTechnology] = newProps["Technology"];
 
 	QString status  = newProps["Status"].toString();
 	if (status == "registered" || status == "roming")

@@ -18,6 +18,7 @@
 #include "callmanager.h"
 #include <contextproperty.h>
 #include "callvolume_interface.h"
+#include "common.h"
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -38,7 +39,7 @@ public:
 	virtual void unsubscribe(QSet<QString> keys);
 	virtual void blockUntilReady() {}
 	virtual void blockUntilSubscribed(const QString&) {}
-
+	QList<QDBusObjectPath> providerProcessGetModems(QDBusPendingCallWatcher *);
 private slots:
 	void initProvider();
 	void cleanProvider();

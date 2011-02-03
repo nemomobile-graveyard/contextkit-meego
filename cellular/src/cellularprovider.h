@@ -18,6 +18,7 @@
 #include <iproviderplugin.h>
 #include <contextproperty.h>
 #include "ofono_interface.h"
+#include "common.h"
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -38,6 +39,7 @@ public:
 	virtual void unsubscribe(QSet<QString> keys);
 	virtual void blockUntilReady() {}
 	virtual void blockUntilSubscribed(const QString&) {}
+	QList<QDBusObjectPath> providerProcessGetModems(QDBusPendingCallWatcher *call);
 
 private slots:
 	void initProvider();

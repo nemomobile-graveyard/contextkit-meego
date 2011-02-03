@@ -1,11 +1,11 @@
 include(../../common.pri)
 
-!exists(callvolume_interface.h):system(qdbusxml2cpp  -N -c CallVolume -p callvolume_interface.h:callvolume_interface.cpp org.ofono.callvolume.xml)
+!exists(callvolume_interface.h):system(qdbusxml2cpp  -N -c CallVolume -i common.h -p callvolume_interface.h:callvolume_interface.cpp org.ofono.callvolume.xml)
 
-!exists(callmanager_interface.h):system(qdbusxml2cpp  -N -c VoiceCallManager -p callmanager_interface.h:callmanager_interface.cpp org.ofono.callmanager.xml)
+!exists(callmanager_interface.h):system(qdbusxml2cpp  -N -c VoiceCallManager -i common.h -p callmanager_interface.h:callmanager_interface.cpp org.ofono.callmanager.xml)
 
-!exists(manager_interface.h):system(qdbusxml2cpp -N -c Manager -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
-!exists(voicecall_interface.h):system(qdbusxml2cpp -N -c VoiceCall -p voicecall_interface.h:voicecall_interface.cpp org.ofono.voicecall.xml)
+!exists(manager_interface.h):system(qdbusxml2cpp -N -c Manager -i common.h -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
+!exists(voicecall_interface.h):system(qdbusxml2cpp -N -c VoiceCall -i common.h -p voicecall_interface.h:voicecall_interface.cpp org.ofono.voicecall.xml)
 
 
 TEMPLATE = lib
@@ -23,10 +23,12 @@ SOURCES += phoneprovider.cpp \
 	callvolume_interface.cpp\
 	callmanager_interface.cpp\
 	callproxy.cpp \
-	voicecall_interface.cpp
+	voicecall_interface.cpp \
+        common.cpp
 	
 	
-HEADERS += phoneprovider.h \
+HEADERS += common.h \
+        phoneprovider.h \
 	manager_interface.h\
 	callmanager_interface.h\
 	callvolume_interface.h\
@@ -34,8 +36,7 @@ HEADERS += phoneprovider.h \
 	callitem.h \
 	callitemmodel.h\
 	callproxy.h\
-	voicecall_interface.h \
-	common.h
+	voicecall_interface.h
 
 target.path = $$CONTEXTKIT_SUBSCRIBER_PLUGIN_PATH
 

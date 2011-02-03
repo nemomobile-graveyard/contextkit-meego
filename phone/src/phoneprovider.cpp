@@ -27,6 +27,7 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 PhoneProvider::PhoneProvider():m_currCalls(0),m_currMpartyCalls(0),m_currActiveCall(new CallItem(QString("")))
 {
 	qDebug() << "PhoneProvider" << "Initializing phone provider";
+	registerContextDataTypes();
 	QMetaObject::invokeMethod(this,"ready",Qt::QueuedConnection);
 }
 
@@ -58,9 +59,14 @@ void PhoneProvider::initProvider()
 				  "/",
 				QDBusConnection::systemBus());
 
-	QVariantMap managerProps = managerProxy.GetProperties();
+        QDBusPendingReply<QArrayOfPathProperties> reply;
+        QDBusPendingCallWatcher * watcher;
 
-        QList<QDBusObjectPath> paths = qdbus_cast<QList<QDBusObjectPath> >(managerProps["Modems"]);
+        reply = managerProxy.GetModems();
+        watcher = new QDBusPendingCallWatcher(reply);
+        watcher->waitForFinished();
+
+        QList<QDBusObjectPath> paths = providerProcessGetModems(watcher);
 
         QString modemPath;
 
@@ -94,6 +100,25 @@ void PhoneProvider::initProvider()
 	{
 		qDebug() << "PhoneProvider" << "Couldn't connect to CallMananger interface";
 	}
+}
+
+QList<QDBusObjectPath> PhoneProvider::providerProcessGetModems(QDBusPendingCallWatcher *call)
+{
+    QDBusPendingReply<QArrayOfPathProperties> reply = *call;
+    QList<QDBusObjectPath> pathlist;
+    if (reply.isError()) {
+        // TODO: Handle this properly, by setting states, or disabling features
+        qWarning() << "org.ofono.Manager.GetModems() failed: " <<
+                      reply.error().message();
+    } else {
+        QArrayOfPathProperties modems = reply.value();
+        qDebug() << QString("modem count:")<<modems.count();
+        for (int i=0; i< modems.count();i++) {
+            OfonoPathProperties p = modems[i];
+            pathlist.append(QDBusObjectPath(p.path.path()));
+        }
+    }
+    return pathlist;
 }
 
 void PhoneProvider::cleanProvider()
