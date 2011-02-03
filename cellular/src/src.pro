@@ -1,8 +1,8 @@
 include(../../common.pri)
 
-!exists(ofono_interface.h):system(qdbusxml2cpp -N -c NetworkProperties -i common.h -p ofono_interface.h:ofono_interface.cpp org.ofono.networkregistration.xml)
+system(qdbusxml2cpp -N -c NetworkProperties -i common.h -p ofono_interface.h:ofono_interface.cpp org.ofono.networkregistration.xml)
 
-!exists(manager_interface.h):system(qdbusxml2cpp -N -c Manager -i common.h -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
+system(qdbusxml2cpp -N -c Manager -i common.h -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
 
 
 TEMPLATE = lib
