@@ -18,6 +18,8 @@
 #include <iproviderplugin.h>
 #include <contextproperty.h>
 #include "ofono_interface.h"
+#include "manager_interface.h"
+#include "sim_interface.h"
 #include "common.h"
 
 using ContextSubscriber::IProviderPlugin;
@@ -48,10 +50,32 @@ private slots:
 	void updateProperty(const QString&, const QDBusVariant&);
 	void emitSubscribeFinished();
 
+	void deleteProperties();
+	bool activateModem(const QString &);
+
+	void updateSimPresent(const QDBusVariant &);
+	void updateRegistrationStatus(const QDBusVariant &);
+	void updateCellName(const QDBusVariant &);
+	void updateSignalStrength(const QDBusVariant &);
+	void updateTechnology(const QDBusVariant &);
+	void updateNetworkName(const QDBusVariant &);
+
+	void setUnknown(const QString&);
+
+	void addModem(const QDBusObjectPath &, const QVariantMap&);
+	void removeModem(const QDBusObjectPath &);
+
+
+
+
 private:
-	QMap<QString,QVariant> props;
-	QSet<QString> subscribedProps;
-	NetworkProperties *networkProps; 
+	Manager *managerProxy;
+	QString activeModem;
+	QMap<QString,QVariant> properties;
+	QSet<QString> subscribedProperties;
+	NetworkProperties *networkProperties;
+	SimProperties *simProperties;
+
 };
 
 
