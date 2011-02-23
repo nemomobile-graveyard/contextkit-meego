@@ -1,11 +1,11 @@
 include(../../common.pri)
 
-!exists(callvolume_interface.h):system(qdbusxml2cpp  -N -c CallVolume -i common.h -p callvolume_interface.h:callvolume_interface.cpp org.ofono.callvolume.xml)
+system(qdbusxml2cpp  -N -c CallVolume -i common.h -p callvolume_interface.h:callvolume_interface.cpp org.ofono.callvolume.xml)
 
-!exists(callmanager_interface.h):system(qdbusxml2cpp  -N -c VoiceCallManager -i common.h -p callmanager_interface.h:callmanager_interface.cpp org.ofono.callmanager.xml)
+system(qdbusxml2cpp  -N -c VoiceCallManager -i common.h -p callmanager_interface.h:callmanager_interface.cpp org.ofono.callmanager.xml)
 
-!exists(manager_interface.h):system(qdbusxml2cpp -N -c Manager -i common.h -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
-!exists(voicecall_interface.h):system(qdbusxml2cpp -N -c VoiceCall -i common.h -p voicecall_interface.h:voicecall_interface.cpp org.ofono.voicecall.xml)
+system(qdbusxml2cpp -N -c Manager -i common.h -p manager_interface.h:manager_interface.cpp org.ofono.manager.xml)
+system(qdbusxml2cpp -N -c VoiceCall -i common.h -p voicecall_interface.h:voicecall_interface.cpp org.ofono.voicecall.xml)
 
 
 TEMPLATE = lib
