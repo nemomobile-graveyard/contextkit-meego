@@ -92,9 +92,6 @@ void ConnmanProvider::timerEvent(QTimerEvent *event)
   m_properties[trafficIn] = qrand()*10.0 / RAND_MAX + 20;
   m_properties[trafficOut] = qrand()*10.0 / RAND_MAX + 20;
 
-  printf("trafficIn: %d\n", m_properties[trafficIn].toInt());
-  printf("traffOut: %d\n", m_properties[trafficOut].toInt());
-
   emit valueChanged(trafficIn, m_properties[trafficIn]);
   emit valueChanged(trafficOut, m_properties[trafficOut]);
 }
