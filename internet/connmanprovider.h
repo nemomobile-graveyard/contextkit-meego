@@ -42,6 +42,7 @@ public:
 
   static const QString networkType;
   static const QString networkState;
+  static const QString signalStrength;
   static const QString trafficIn;
   static const QString trafficOut;
 
@@ -61,6 +62,7 @@ private slots:
   void emitSubscribeFinished();
   void emitChanged();
   void defaultTechnologyChanged(QString Technology);
+  void defaultRouteChanged(NetworkItemModel* item);
   void stateChanged(QString State);
 };
 

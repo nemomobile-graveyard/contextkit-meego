@@ -22,6 +22,7 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 
 const QString ConnmanProvider::networkType("Internet.NetworkType");
 const QString ConnmanProvider::networkState("Internet.NetworkState");
+const QString ConnmanProvider::signalStrength("Internet.SignalStrength");
 const QString ConnmanProvider::trafficIn("Internet.TrafficIn");
 const QString ConnmanProvider::trafficOut("Internet.TrafficOut");
 
@@ -48,10 +49,19 @@ ConnmanProvider::ConnmanProvider()
   m_networkListModel = new NetworkListModel();
   m_properties[networkType] = map(m_networkListModel->defaultTechnology());
   m_properties[networkState] = map(m_networkListModel->state());
+
+  if(m_networkListModel->defaultRoute())
+      m_properties[signalStrength] = m_networkListModel->defaultRoute()->strength();
+  else
+      m_properties[signalStrength] = 0;
+
   connect(m_networkListModel, SIGNAL(defaultTechnologyChanged(QString)),
 	  this, SLOT(defaultTechnologyChanged(QString)));
   connect(m_networkListModel, SIGNAL(stateChanged(QString)),
 	  this, SLOT(stateChanged(QString)));
+  connect(m_networkListModel, SIGNAL(defaultRouteChanged(NetworkItemModel*)),
+          this, SLOT(defaultRouteChanged(NetworkItemModel*)));
+
   
   //sadly, QVariant is not a registered metatype
   qRegisterMetaType<QVariant>("QVariant");
@@ -122,6 +132,18 @@ void ConnmanProvider::defaultTechnologyChanged(QString Technology)
   if (m_subscribedProperties.contains(networkType)) {
     emit valueChanged(networkType, QVariant(m_properties[networkType]));
   }
+}
+
+void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
+{
+    if(item)
+        m_properties[signalStrength] = item->strength();
+    else
+        m_properties[signalStrength] = 0;
+
+    if (m_subscribedProperties.contains(networkType)) {
+      emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
+    }
 }
 
 void ConnmanProvider::stateChanged(QString State)
