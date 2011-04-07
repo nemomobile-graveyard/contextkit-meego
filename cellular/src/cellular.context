@@ -3,4 +3,8 @@
   <key name="Cellular.SignalStrength"></key>
   <key name="Cellular.DataTechnology"></key>
   <key name="Cellular.RegistrationStatus"></key>
+  <key name="Cellular.Technology"></key>
+  <key name="Cellular.SignalBars"></key>
+  <key name="Cellular.CellName"></key>
+  <key name="Cellular.NetworkName"></key>
 </provider>
