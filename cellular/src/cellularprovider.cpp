@@ -307,12 +307,12 @@ void CellularProvider::updateTechnology(const QDBusVariant &val)
 {
 	QString tech = qdbus_cast<QString> (val.variant());
 
-	if (tech == "gprs") {
-		properties[DataTechnology] = QVariant("gsm");
+	if (tech == "gsm") {
+		properties[DataTechnology] = QVariant("gprs");
 		properties[Technology] = QVariant("gsm");
 	}
-	else if (tech == "egprs") {
-		properties[DataTechnology] = QVariant("edge");
+	else if (tech == "edge") {
+		properties[DataTechnology] = QVariant("egprs");
 		properties[Technology] = QVariant("gsm");
 	}
 	else if (tech == "umts") {
