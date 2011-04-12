@@ -4,4 +4,5 @@
   <key name="Internet.NetworkState"></key>
   <key name="Internet.TrafficIn"></key>
   <key name="Internet.TrafficOut"></key>
+  <key name="Internet.SignalStrength"></key>
 </provider>

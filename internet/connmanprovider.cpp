@@ -50,18 +50,17 @@ ConnmanProvider::ConnmanProvider()
   m_properties[networkType] = map(m_networkListModel->defaultTechnology());
   m_properties[networkState] = map(m_networkListModel->state());
 
-  if(m_networkListModel->defaultRoute())
-      m_properties[signalStrength] = m_networkListModel->defaultRoute()->strength();
-  else
-      m_properties[signalStrength] = 0;
+  findActiveWifiConnection();
 
   connect(m_networkListModel, SIGNAL(defaultTechnologyChanged(QString)),
 	  this, SLOT(defaultTechnologyChanged(QString)));
   connect(m_networkListModel, SIGNAL(stateChanged(QString)),
 	  this, SLOT(stateChanged(QString)));
-  connect(m_networkListModel, SIGNAL(defaultRouteChanged(NetworkItemModel*)),
-          this, SLOT(defaultRouteChanged(NetworkItemModel*)));
+  connect(m_networkListModel, SIGNAL(connectedNetworkItemsChanged()),
+          this, SLOT(findActiveWifiConnection()));
 
+  connect(m_networkListModel, SIGNAL(countChanged(int)),
+          this, SLOT(countChangedSlot(int)));
   
   //sadly, QVariant is not a registered metatype
   qRegisterMetaType<QVariant>("QVariant");
@@ -72,6 +71,9 @@ ConnmanProvider::ConnmanProvider()
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
 			    Q_ARG(QString, networkState),
 			    Q_ARG(QVariant, m_properties[networkState]));
+  QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
+                Q_ARG(QString, signalStrength),
+                Q_ARG(QVariant, m_properties[signalStrength]));
 }
 
 ConnmanProvider::~ConnmanProvider()
@@ -111,6 +113,38 @@ QString ConnmanProvider::map(const QString &input) const
   return m_nameMapper[input];
 }
 
+void ConnmanProvider::findActiveWifiConnection()
+{
+  qDebug()<<"trying to find active wifi connection...";
+  qDebug()<<"searching "<<m_networkListModel->networks().count()<<"items";
+  foreach(NetworkItemModel* item, m_networkListModel->networks()) {
+      qDebug()<<"connection: "<<item->type()<<" "<<(int)item->state()<<" >= "<<(int)NetworkItemModel::StateReady;
+      if(item->type() == "wifi" && (int)item->state() >= (int)NetworkItemModel::StateReady) {
+         qDebug()<<"found a connected wifi service!! "<<item->name()<<" strength: "<<item->strength();
+
+         if(item == activeWifi) return;
+
+         activeWifi->disconnect(this);
+         activeWifi = item;
+
+         m_properties[signalStrength] = item->strength();
+         valueChanged(signalStrength,m_properties[signalStrength]);
+         connect(activeWifi,SIGNAL(strengthChanged(int)),this,SLOT(signalStrengthChanged(int)));
+         return;
+      }
+  }
+  activeWifi = NULL;
+  m_properties[signalStrength] = 0;
+}
+
+void ConnmanProvider::signalStrengthChanged(int strength)
+{
+    if(!activeWifi) return;
+    qDebug()<<"signal strength for: "<<activeWifi->name()<<" "<<strength;
+    m_properties[signalStrength] = strength;
+    valueChanged(signalStrength,m_properties[signalStrength]);
+}
+
 void ConnmanProvider::emitSubscribeFinished()
 {
   foreach (QString key, m_subscribedProperties) {
@@ -127,7 +161,7 @@ void ConnmanProvider::emitChanged()
 
 void ConnmanProvider::defaultTechnologyChanged(QString Technology)
 {
-  qDebug() << "defaultTechnologyChanged: " << Technology;
+  //qDebug() << "defaultTechnologyChanged: " << Technology;
   m_properties[networkType] = map(Technology);
   if (m_subscribedProperties.contains(networkType)) {
     emit valueChanged(networkType, QVariant(m_properties[networkType]));

@@ -51,10 +51,11 @@ protected:
 
 private:
   QString map(const QString &input) const;
-
+  ;
   QSet<QString> m_subscribedProperties;
   QVariantMap m_properties;
   NetworkListModel *m_networkListModel;
+  NetworkItemModel *activeWifi;
   int m_timerId;
   QMap<QString, QString> m_nameMapper;
 
@@ -64,6 +65,9 @@ private slots:
   void defaultTechnologyChanged(QString Technology);
   void defaultRouteChanged(NetworkItemModel* item);
   void stateChanged(QString State);
+  void findActiveWifiConnection();
+  void signalStrengthChanged(int);
+  void countChangedSlot(int) { findActiveWifiConnection(); }
 };
 
 #endif //CONNMANPROVIDER_H
