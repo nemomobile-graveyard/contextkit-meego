@@ -26,7 +26,7 @@ const QString ConnmanProvider::signalStrength("Internet.SignalStrength");
 const QString ConnmanProvider::trafficIn("Internet.TrafficIn");
 const QString ConnmanProvider::trafficOut("Internet.TrafficOut");
 
-ConnmanProvider::ConnmanProvider()
+ConnmanProvider::ConnmanProvider(): activeWifi(NULL)
 {
   qDebug() << "ConnmanProvider::ConnmanProvider()";
 
@@ -34,6 +34,7 @@ ConnmanProvider::ConnmanProvider()
   m_nameMapper["gprs"] = "GPRS";
   m_nameMapper["edge"] = "GPRS";
   m_nameMapper["umts"] = "GPRS";
+  m_nameMapper["ethernet"] = "ethernet";
 
   m_nameMapper["offline"] = "disconnected";
   m_nameMapper["online"] = "connected";
