@@ -2,6 +2,7 @@
 <provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/internet" constructionString="internet">
   <key name="Internet.NetworkType"></key>
   <key name="Internet.NetworkState"></key>
+  <key name="Internet.NetworkName"></key>
   <key name="Internet.TrafficIn"></key>
   <key name="Internet.TrafficOut"></key>
   <key name="Internet.SignalStrength"></key>

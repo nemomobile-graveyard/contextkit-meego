@@ -22,9 +22,11 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 
 const QString ConnmanProvider::networkType("Internet.NetworkType");
 const QString ConnmanProvider::networkState("Internet.NetworkState");
+const QString ConnmanProvider::networkName("Internet.NetworkName");
 const QString ConnmanProvider::signalStrength("Internet.SignalStrength");
 const QString ConnmanProvider::trafficIn("Internet.TrafficIn");
 const QString ConnmanProvider::trafficOut("Internet.TrafficOut");
+
 
 ConnmanProvider::ConnmanProvider(): activeWifi(NULL)
 {
@@ -51,17 +53,18 @@ ConnmanProvider::ConnmanProvider(): activeWifi(NULL)
   m_properties[networkType] = map(m_networkListModel->defaultTechnology());
   m_properties[networkState] = map(m_networkListModel->state());
 
-  findActiveWifiConnection();
+  if(m_networkListModel->defaultRoute())
+  {
+      m_properties[signalStrength] = m_networkListModel->defaultRoute()->strength();
+      m_properties[networkName] = m_networkListModel->defaultRoute()->name();
+  }
 
   connect(m_networkListModel, SIGNAL(defaultTechnologyChanged(QString)),
 	  this, SLOT(defaultTechnologyChanged(QString)));
   connect(m_networkListModel, SIGNAL(stateChanged(QString)),
 	  this, SLOT(stateChanged(QString)));
-  connect(m_networkListModel, SIGNAL(connectedNetworkItemsChanged()),
-          this, SLOT(findActiveWifiConnection()));
-
-  connect(m_networkListModel, SIGNAL(countChanged(int)),
-          this, SLOT(countChangedSlot(int)));
+  connect(m_networkListModel, SIGNAL(defaultRouteChanged(NetworkItemModel*)),
+          this, SLOT(defaultRouteChanged(NetworkItemModel*)));
   
   //sadly, QVariant is not a registered metatype
   qRegisterMetaType<QVariant>("QVariant");
@@ -75,6 +78,9 @@ ConnmanProvider::ConnmanProvider(): activeWifi(NULL)
   QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
                 Q_ARG(QString, signalStrength),
                 Q_ARG(QVariant, m_properties[signalStrength]));
+  QMetaObject::invokeMethod(this, "valueChanged", Qt::QueuedConnection,
+                Q_ARG(QString, networkName),
+                Q_ARG(QVariant, m_properties[networkName]));
 }
 
 ConnmanProvider::~ConnmanProvider()
@@ -114,36 +120,17 @@ QString ConnmanProvider::map(const QString &input) const
   return m_nameMapper[input];
 }
 
-void ConnmanProvider::findActiveWifiConnection()
-{
-  qDebug()<<"trying to find active wifi connection...";
-  qDebug()<<"searching "<<m_networkListModel->networks().count()<<"items";
-  foreach(NetworkItemModel* item, m_networkListModel->networks()) {
-      qDebug()<<"connection: "<<item->type()<<" "<<(int)item->state()<<" >= "<<(int)NetworkItemModel::StateReady;
-      if(item->type() == "wifi" && (int)item->state() >= (int)NetworkItemModel::StateReady) {
-         qDebug()<<"found a connected wifi service!! "<<item->name()<<" strength: "<<item->strength();
-
-         if(item == activeWifi) return;
-
-         activeWifi->disconnect(this);
-         activeWifi = item;
-
-         m_properties[signalStrength] = item->strength();
-         valueChanged(signalStrength,m_properties[signalStrength]);
-         connect(activeWifi,SIGNAL(strengthChanged(int)),this,SLOT(signalStrengthChanged(int)));
-         return;
-      }
-  }
-  activeWifi = NULL;
-  m_properties[signalStrength] = 0;
-}
-
 void ConnmanProvider::signalStrengthChanged(int strength)
 {
     if(!activeWifi) return;
+
     qDebug()<<"signal strength for: "<<activeWifi->name()<<" "<<strength;
+
     m_properties[signalStrength] = strength;
-    valueChanged(signalStrength,m_properties[signalStrength]);
+
+    if (m_subscribedProperties.contains(signalStrength)) {
+      emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
+    }
 }
 
 void ConnmanProvider::emitSubscribeFinished()
@@ -171,13 +158,29 @@ void ConnmanProvider::defaultTechnologyChanged(QString Technology)
 
 void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
 {
+    if(activeWifi)
+    {
+        activeWifi->disconnect(this,SLOT(signalStrengthChanged(int)));
+    }
+
+    activeWifi = item;
+
     if(item)
+    {
+        m_properties[networkName] = item->name();
+
         m_properties[signalStrength] = item->strength();
+        connect(activeWifi,SIGNAL(strengthChanged(int)),this,SLOT(signalStrengthChanged(int)));
+    }
     else
         m_properties[signalStrength] = 0;
 
-    if (m_subscribedProperties.contains(networkType)) {
+    if (m_subscribedProperties.contains(signalStrength)) {
       emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
+    }
+
+    if (m_subscribedProperties.contains(networkName)) {
+      emit valueChanged(networkName, QVariant(m_properties[networkName]));
     }
 }
 

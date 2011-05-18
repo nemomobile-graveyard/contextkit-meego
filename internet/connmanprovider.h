@@ -42,6 +42,7 @@ public:
 
   static const QString networkType;
   static const QString networkState;
+  static const QString networkName;
   static const QString signalStrength;
   static const QString trafficIn;
   static const QString trafficOut;
