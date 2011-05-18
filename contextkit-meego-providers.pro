@@ -6,8 +6,7 @@ SUBDIRS += battery \
     cellular \
     phone \
     internet \
+    bluetooth
 #    location
-#    presence \
-#    useralarm \
 
 OTHER_FILES +=

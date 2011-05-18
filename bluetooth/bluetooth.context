@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/bluetooth" constructionString="bluetooth">
+  <key name="Bluetooth.Connected"></key>
+</provider>
