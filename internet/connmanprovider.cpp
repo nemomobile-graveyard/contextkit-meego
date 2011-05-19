@@ -55,6 +55,10 @@ ConnmanProvider::ConnmanProvider(): activeWifi(NULL)
 
   if(m_networkListModel->defaultRoute())
   {
+      activeWifi = m_networkListModel->defaultRoute();
+
+      connect(activeWifi,SIGNAL(propertyChanged()),this,SLOT(propertiesChanged()));
+
       m_properties[signalStrength] = m_networkListModel->defaultRoute()->strength();
       m_properties[networkName] = m_networkListModel->defaultRoute()->name();
   }
@@ -160,17 +164,20 @@ void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
 {
     if(activeWifi)
     {
+        activeWifi->disconnect(this,SLOT(propertiesChanged()));
         activeWifi->disconnect(this,SLOT(signalStrengthChanged(int)));
     }
 
     activeWifi = item;
 
+
     if(item)
     {
         m_properties[networkName] = item->name();
-
         m_properties[signalStrength] = item->strength();
+
         connect(activeWifi,SIGNAL(strengthChanged(int)),this,SLOT(signalStrengthChanged(int)));
+        connect(activeWifi,SIGNAL(propertyChanged()),this,SLOT(propertiesChanged()));
     }
     else
         m_properties[signalStrength] = 0;
@@ -179,6 +186,14 @@ void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
       emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
     }
 
+    if (m_subscribedProperties.contains(networkName)) {
+      emit valueChanged(networkName, QVariant(m_properties[networkName]));
+    }
+}
+
+void ConnmanProvider::propertiesChanged()
+{
+    m_properties[networkName] = activeWifi->name();
     if (m_subscribedProperties.contains(networkName)) {
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
     }

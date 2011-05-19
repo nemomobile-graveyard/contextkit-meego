@@ -69,6 +69,7 @@ private slots:
   void findActiveWifiConnection();
   void signalStrengthChanged(int);
   void countChangedSlot(int) { findActiveWifiConnection(); }
+  void propertiesChanged();
 };
 
 #endif //CONNMANPROVIDER_H
