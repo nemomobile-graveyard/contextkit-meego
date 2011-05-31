@@ -1,0 +1,77 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+          "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="com.meego.app.music">
+    <property name="state" type="s" access="readwrite"/>
+    <property name="nowNextTracks" type="as" access="readwrite"/>
+    <signal name="error">
+      <arg name="errorCode" type="i" direction="out"/>
+    </signal>
+    <signal name="playerClosed">
+    </signal>
+    <signal name="playerLaunched">
+    </signal>
+    <signal name="positionChanged">
+      <arg name="position" type="i" direction="out"/>
+    </signal>
+    <signal name="trackChanged">
+      <arg name="track" type="i" direction="out"/>
+    </signal>
+    <signal name="stateChanged">
+    </signal>
+    <signal name="nowNextTracksChanged">
+    </signal>
+    <signal name="currentTrackMetadataChanged">
+      <arg name="data" type="as" direction="out"/>
+    </signal>
+    <method name="close">
+    </method>
+    <method name="fastForward">
+    </method>
+    <method name="getCurrentTrack">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="getNumberOfTracks">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="getPlaybackMode">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="getPlaybackState">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="getPosition">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="getVolume">
+      <arg type="i" direction="out"/>
+    </method>
+    <method name="pause">
+    </method>
+    <method name="play">
+    </method>
+    <method name="prev">
+    </method>
+    <method name="playNextTrack">
+    </method>
+    <method name="next">
+    </method>
+    <method name="playPreviousTrack">
+    </method>
+    <method name="rewind">
+    </method>
+    <method name="setMuted">
+      <arg name="muted" type="b" direction="in"/>
+    </method>
+    <method name="setVolume">
+      <arg name="level" type="i" direction="in"/>
+    </method>
+    <method name="show">
+    </method>
+    <method name="stop">
+    </method>
+    <method name="getCurrentTrackMetadata">
+      <arg type="as" direction="out"/>
+    </method>
+  </interface>
+</node>
