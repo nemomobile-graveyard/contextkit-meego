@@ -1,0 +1,7 @@
+*.o
+*.so
+moc_*
+*~
+Makefile
+*-test
+*_interface.*
