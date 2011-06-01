@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/media" constructionString="media">
+  <key name="Media.NowPlaying"></key>
+</provider>
