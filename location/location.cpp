@@ -194,9 +194,14 @@ void LocationProvider::getHeading()
 
 void LocationProvider::updateProperty(const QString& key, const QVariant& value)
 {
+    bool changed = true;
+    if (Properties[key] == value) {
+      changed = false;
+    }
+    
     Properties[key] = value;
-    if (subscribedProps.contains(key)) {
-        emit valueChanged(key, value);
+    if (subscribedProps.contains(key) && changed) {
+      emit valueChanged(key, value);
     }
 }
 
