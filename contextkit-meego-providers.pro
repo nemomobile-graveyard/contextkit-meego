@@ -7,7 +7,7 @@ SUBDIRS += battery \
     phone \
     internet \
     bluetooth \
-    media
-#    location
+    media \
+    location
 
 OTHER_FILES +=
