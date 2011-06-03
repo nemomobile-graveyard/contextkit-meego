@@ -31,7 +31,8 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 	return new LocationProvider();
 }
 
-LocationProvider::LocationProvider() : gpsDevice(NULL), position(NULL)
+LocationProvider::LocationProvider() :
+  gpsDevice(NULL), position(NULL), course(NULL)
 {
 	qDebug() << "LocationProvider " << "Initializing LocationProvider provider";
 
@@ -51,11 +52,16 @@ LocationProvider::LocationProvider() : gpsDevice(NULL), position(NULL)
 		 gpsDevice = new OrgFreedesktopGypsyDeviceInterface(gypsyService, devicePath,
 							   QDBusConnection::systemBus(), this);
 		 position = new OrgFreedesktopGypsyPositionInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
-
+		 
 		 connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
 		 connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
 		 
 		 connect(position,SIGNAL(PositionChanged(int,int,double,double,double)), this, SLOT(positionChanged(int,int,double,double,double)));
+		 
+		 course = new OrgFreedesktopGypsyCourseInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
+		 connect(course, SIGNAL(CourseChanged(int,int,double,double,double)),
+			 this, SLOT(courseChanged(int,int,double,double,double)));
+		 
 	}
 	QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
@@ -75,6 +81,9 @@ void LocationProvider::subscribe(QSet<QString> keys)
 
 	if (subscribedProps.contains(coordinates)) {
 	  getCoordinates();
+	}
+	if (subscribedProps.contains(heading)) {
+	  getHeading();
 	}
 
 	QMetaObject::invokeMethod(this, "emitSubscribeFinished", Qt::QueuedConnection);
@@ -171,6 +180,18 @@ void LocationProvider::getCoordinates()
 	  this, SLOT(getPositionFinished(QDBusPendingCallWatcher*)));
 }
 
+void LocationProvider::getHeading()
+{
+  if (!course->isValid()) {
+    qDebug() << "course interface is invalid!";
+    return;
+  }
+  QDBusPendingReply<int, int, double, double, double> reply = course->GetCourse();
+  QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
+  connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)), 
+	  this, SLOT(getCourseFinished(QDBusPendingCallWatcher*)));
+}
+
 void LocationProvider::updateProperty(const QString& key, const QVariant& value)
 {
     Properties[key] = value;
@@ -186,6 +207,7 @@ void LocationProvider::fixStatusChanged(int)
 
 void LocationProvider::positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude)
 {
+  //FIXME: use fields correctly
     qDebug() << "LocationProvider:" << "New coordinate values:";
     qDebug() << "\tfields:" << fields << endl
              << "\ttimestamp:" << timestamp << endl
@@ -198,6 +220,18 @@ void LocationProvider::positionChanged(int fields, int timestamp, double latitud
     coords.append(QVariant(longitude));
     coords.append(QVariant(altitude));
     updateProperty("Location.Coordinates", coords);
+}
+
+void LocationProvider::courseChanged(int fields, int timestamp, double speed, double direction, double climb)
+{
+  //FIXME: use fields correctly
+  qDebug() << "LocationProvider:" << "New course values:";
+  qDebug() << "\tfields:" << fields << endl
+	   << "\ttimestamp:" << timestamp << endl
+	   << "\tspeed:" << speed << endl
+	   << "\tdirection:" << direction << endl
+	   << "\tclimb:" << climb << endl;
+  updateProperty(heading, direction);
 }
 
 
@@ -217,6 +251,21 @@ void LocationProvider::getPositionFinished(QDBusPendingCallWatcher *watcher)
 		    reply.argumentAt<2>(),
 		    reply.argumentAt<3>(),
 		    reply.argumentAt<4>());
+  }
+  watcher->deleteLater();
+}
+
+void LocationProvider::getCourseFinished(QDBusPendingCallWatcher* watcher)
+{
+  QDBusPendingReply<int, int, double, double, double> reply = *watcher;
+  if (reply.isError()) {
+    qDebug() << "GetCourse resulted in error!";
+  } else {
+    courseChanged(reply.argumentAt<0>(),
+		  reply.argumentAt<1>(),
+		  reply.argumentAt<2>(),
+		  reply.argumentAt<3>(),
+		  reply.argumentAt<4>());
   }
   watcher->deleteLater();
 }

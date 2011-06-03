@@ -51,10 +51,12 @@ private:
     QSet<QString> subscribedProps;
     OrgFreedesktopGypsyDeviceInterface *gpsDevice;
     OrgFreedesktopGypsyPositionInterface *position;
+    OrgFreedesktopGypsyCourseInterface *course;
     
     QString parseOutNode(QString xml);
     void updateProperty(const QString& key, const QVariant& value);
     void getCoordinates();
+  void getHeading();
 
 private slots:
     void updateProperties();
@@ -64,8 +66,10 @@ private slots:
 
     void fixStatusChanged(int);
     void positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude);
+  void courseChanged(int fields, int timestamp, double speed, double direction, double climb);
     void connectionStatusChanged(bool);
     void getPositionFinished(QDBusPendingCallWatcher* watcher);
+    void getCourseFinished(QDBusPendingCallWatcher* watcher);
 };
 
 
