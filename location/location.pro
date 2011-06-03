@@ -6,7 +6,8 @@ CONFIG += debug \
     plugin
 QT += dbus xmlpatterns
 PKGCONFIG += contextprovider-1.0 \
-    contextsubscriber-1.0
+    contextsubscriber-1.0 \
+    mlite
 TARGET = location
 SOURCES += location.cpp \
     gypsy_interface.cpp
