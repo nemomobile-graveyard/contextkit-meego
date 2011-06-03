@@ -19,6 +19,8 @@
 #include <contextproperty.h>
 #include "gypsy_interface.h"
 
+class QDBusPendingCallWatcher;
+
 using ContextSubscriber::IProviderPlugin;
 
 extern "C"
@@ -40,11 +42,19 @@ public:
     virtual void blockUntilSubscribed(const QString&) {}
 
 private:
+    static const QString gypsyService;
+    static const QString satPositioningState;
+    static const QString coordinates;
+    static const QString heading;
+
     QHash<QString,QVariant> Properties;
     QSet<QString> subscribedProps;
     OrgFreedesktopGypsyDeviceInterface *gpsDevice;
+    OrgFreedesktopGypsyPositionInterface *position;
     
     QString parseOutNode(QString xml);
+    void updateProperty(const QString& key, const QVariant& value);
+    void getCoordinates();
 
 private slots:
     void updateProperties();
@@ -53,7 +63,9 @@ private slots:
     void onLastSubscriberDisappeared();
 
     void fixStatusChanged(int);
+    void positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude);
     void connectionStatusChanged(bool);
+    void getPositionFinished(QDBusPendingCallWatcher* watcher);
 };
 
 

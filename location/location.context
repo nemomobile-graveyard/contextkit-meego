@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <provider xmlns="http://contextkit.freedesktop.org/Provider" plugin="/liblocation" constructionString="location">
   <key name="Location.SatPositioningState"></key>
+  <key name="Location.Coordinates"></key>
 </provider>

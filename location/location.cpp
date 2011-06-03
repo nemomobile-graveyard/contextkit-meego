@@ -16,11 +16,14 @@
 #include <QDBusObjectPath>
 #include <QXmlQuery>
 #include <QDomDocument>
+#include <QDBusPendingCallWatcher>
 
-#define SatPositioningState "Location.SatPositioningState"
-///on, searching, off
+const QString LocationProvider::gypsyService("org.freedesktop.Gypsy");
+const QString LocationProvider::satPositioningState("Location.SatPositioningState"); ///on, searching, off
 
-//typedef OrgFreedesktopDeviceKitPowerInterface Power;
+const QString LocationProvider::coordinates("Location.Coordinates");
+const QString LocationProvider::heading("Location.Heading");
+
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
@@ -28,11 +31,11 @@ IProviderPlugin* pluginFactory(const QString& constructionString)
 	return new LocationProvider();
 }
 
-LocationProvider::LocationProvider():gpsDevice(NULL)
+LocationProvider::LocationProvider() : gpsDevice(NULL), position(NULL)
 {
 	qDebug() << "LocationProvider " << "Initializing LocationProvider provider";
 
-	QDBusInterface interface("org.freedesktop.Gypsy","/org/freedesktop/Gypsy",
+	QDBusInterface interface(gypsyService, "/org/freedesktop/Gypsy",
 				 "org.freedesktop.DBus.Introspectable", QDBusConnection::systemBus(), this);
 
 	QDBusReply<QString> reply = interface.call("Introspect");
@@ -45,11 +48,14 @@ LocationProvider::LocationProvider():gpsDevice(NULL)
 
 	if(!devicePath.isEmpty())
 	{
-		 gpsDevice = new OrgFreedesktopGypsyDeviceInterface("org.freedesktop.Gypsy", devicePath,
+		 gpsDevice = new OrgFreedesktopGypsyDeviceInterface(gypsyService, devicePath,
 							   QDBusConnection::systemBus(), this);
+		 position = new OrgFreedesktopGypsyPositionInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
 
 		 connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
 		 connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
+		 
+		 connect(position,SIGNAL(PositionChanged(int,int,double,double,double)), this, SLOT(positionChanged(int,int,double,double,double)));
 	}
 	QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 }
@@ -66,6 +72,10 @@ void LocationProvider::subscribe(QSet<QString> keys)
 	if(!subscribedProps.count()) onFirstSubscriberAppeared();
 
 	subscribedProps.unite(keys);
+
+	if (subscribedProps.contains(coordinates)) {
+	  getCoordinates();
+	}
 
 	QMetaObject::invokeMethod(this, "emitSubscribeFinished", Qt::QueuedConnection);
 }
@@ -105,9 +115,9 @@ void LocationProvider::updateProperties()
 	qDebug()<<" connected? "<<isConnected<<" fix status: "<<fixStatus;
 
 	if(!isConnected)
-		Properties[SatPositioningState] = "off";
+		Properties[satPositioningState] = "off";
 	else
-		Properties[SatPositioningState] = fixStatus == 1 ? "searching":"on";
+		Properties[satPositioningState] = fixStatus == 1 ? "searching":"on";
 
 	foreach(QString key, subscribedProps)
 	{
@@ -149,12 +159,64 @@ QString LocationProvider::parseOutNode(QString xml)
 	return "/org/freedesktop/Gypsy/"+node.toElement().attribute("name");
 }
 
+void LocationProvider::getCoordinates()
+{
+  if (!position->isValid()) {
+    qDebug() << "position interface is invalid!";
+    return;
+  }
+  QDBusPendingReply<int, int, double, double, double> reply = position->GetPosition();
+  QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(reply, this);
+  connect(watcher, SIGNAL(finished(QDBusPendingCallWatcher*)), 
+	  this, SLOT(getPositionFinished(QDBusPendingCallWatcher*)));
+}
+
+void LocationProvider::updateProperty(const QString& key, const QVariant& value)
+{
+    Properties[key] = value;
+    if (subscribedProps.contains(key)) {
+        emit valueChanged(key, value);
+    }
+}
+
 void LocationProvider::fixStatusChanged(int)
 {
 	updateProperties();
 }
 
+void LocationProvider::positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude)
+{
+    qDebug() << "LocationProvider:" << "New coordinate values:";
+    qDebug() << "\tfields:" << fields << endl
+             << "\ttimestamp:" << timestamp << endl
+             << "\tlatitude:" << latitude << endl
+             << "\tlongitude:" << longitude << endl
+             << "\taltitude:" << altitude;
+
+    QList<QVariant> coords;
+    coords.append(QVariant(latitude));
+    coords.append(QVariant(longitude));
+    coords.append(QVariant(altitude));
+    updateProperty("Location.Coordinates", coords);
+}
+
+
 void LocationProvider::connectionStatusChanged(bool)
 {
 	updateProperties();
+}
+
+void LocationProvider::getPositionFinished(QDBusPendingCallWatcher *watcher)
+{
+  QDBusPendingReply<int, int, double, double, double> reply = *watcher;
+  if (reply.isError()) {
+    qDebug() << "GetPosition resulted in error!";
+  } else {
+    positionChanged(reply.argumentAt<0>(),
+		    reply.argumentAt<1>(),
+		    reply.argumentAt<2>(),
+		    reply.argumentAt<3>(),
+		    reply.argumentAt<4>());
+  }
+  watcher->deleteLater();
 }
