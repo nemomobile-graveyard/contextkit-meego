@@ -53,7 +53,6 @@ private:
     OrgFreedesktopGypsyPositionInterface *position;
     OrgFreedesktopGypsyCourseInterface *course;
     
-    QString parseOutNode(QString xml);
     void updateProperty(const QString& key, const QVariant& value);
     void getCoordinates();
     void getHeading();

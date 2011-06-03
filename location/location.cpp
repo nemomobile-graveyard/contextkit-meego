@@ -14,9 +14,8 @@
 
 #include <QDBusConnection>
 #include <QDBusObjectPath>
-#include <QXmlQuery>
-#include <QDomDocument>
 #include <QDBusPendingCallWatcher>
+#include <MGConfItem>
 
 const QString LocationProvider::gypsyService("org.freedesktop.Gypsy");
 const QString LocationProvider::satPositioningState("Location.SatPositioningState"); ///on, searching, off
@@ -36,39 +35,7 @@ LocationProvider::LocationProvider() :
 {
 	qDebug() << "LocationProvider " << "Initializing LocationProvider provider";
 
-	QDBusInterface interface(gypsyService, "/org/freedesktop/Gypsy",
-				 "org.freedesktop.DBus.Introspectable", QDBusConnection::systemBus(), this);
-
-	QDBusReply<QString> reply = interface.call("Introspect");
-
-	QString xml = reply.value();
-
-	QString devicePath = parseOutNode(xml);
-
-	qDebug()<<"device path: "<<devicePath;
-
-	if(!devicePath.isEmpty())
-	{
-		 gpsDevice = new OrgFreedesktopGypsyDeviceInterface(gypsyService, devicePath,
-							   QDBusConnection::systemBus(), this);
-		 position = new OrgFreedesktopGypsyPositionInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
-		 
-		 connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
-		 connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
-		 
-		 connect(position,SIGNAL(PositionChanged(int,int,double,double,double)), this, SLOT(positionChanged(int,int,double,double,double)));
-		 
-		 course = new OrgFreedesktopGypsyCourseInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
-		 connect(course, SIGNAL(CourseChanged(int,int,double,double,double)),
-			 this, SLOT(courseChanged(int,int,double,double,double)));
-		 
-	}
 	QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
-}
-
-LocationProvider::~LocationProvider()
-{
-
 }
 
 void LocationProvider::subscribe(QSet<QString> keys)
@@ -100,18 +67,55 @@ void LocationProvider::onFirstSubscriberAppeared()
 	qDebug("first subscriber appeared!");
 	qDebug() << "LocationProvider " << "First subscriber appeared, connecting to Gypsy";
 
+	MGConfItem *gypsyPath = new MGConfItem("/apps/geoclue/master/org.freedesktop.Geoclue.GPSDevice", this);
+	if (!gypsyPath || gypsyPath->value() == QVariant::Invalid) {
+	  QString errorString("Gypsy path is invalid or missing from gconf!");
+	  qDebug()  << "LocationProvider " << errorString;
+	  QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
+				    Q_ARG(QString, errorString));
+	  return;
+	}
+	qDebug() << "using" << gypsyPath->value().toString() << "as gypsy path";
+
+	QDBusInterface *interface = new QDBusInterface(gypsyService, "/org/freedesktop/Gypsy",
+						       "org.freedesktop.Gypsy.Server", QDBusConnection::systemBus(), this);
+	QDBusReply<QDBusObjectPath> reply = interface->call("Create", gypsyPath->value().toString());
+	  if (!reply.isValid()) {
+	    QDBusError error = reply.error();
+	    QString errorString(error.errorString(error.type()) + ": " + error.message());
+	    qDebug() << "creating gypsy device resulted in error:" << errorString;
+	    QMetaObject::invokeMethod(this, "failed", Qt::QueuedConnection,
+				      Q_ARG(QString, errorString));
+	    return; 
+	  }
+	QString devicePath = reply.value().path();
+	qDebug()<<"device path: "<<devicePath;
+	
+	gpsDevice = new OrgFreedesktopGypsyDeviceInterface(gypsyService, devicePath,
+							   QDBusConnection::systemBus(), this);
+	position = new OrgFreedesktopGypsyPositionInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
+	
+	connect(gpsDevice,SIGNAL(ConnectionStatusChanged(bool)),this,SLOT(connectionStatusChanged(bool)));
+	connect(gpsDevice,SIGNAL(FixStatusChanged(int)),this, SLOT(fixStatusChanged(int)));
+	
+	connect(position,SIGNAL(PositionChanged(int,int,double,double,double)), this, SLOT(positionChanged(int,int,double,double,double)));
+	  
+	course = new OrgFreedesktopGypsyCourseInterface(gypsyService, devicePath, QDBusConnection::systemBus(), this);
+	connect(course, SIGNAL(CourseChanged(int,int,double,double,double)),
+		this, SLOT(courseChanged(int,int,double,double,double)));
+
 	QMetaObject::invokeMethod(this, "updateProperties", Qt::QueuedConnection);
 }
 
 void LocationProvider::onLastSubscriberDisappeared()
 {
 	qDebug() << "LocationProvider" << "Last subscriber gone, destroying LocationProvider connections";
-
+	//TODO: disconnect from gpysy at this point
 }
 
 void LocationProvider::updateProperties()
 {
-	///TODO: update properties
+	///TODO: update all properties
 
 	if(!gpsDevice || !gpsDevice->isValid())
 	{
@@ -140,32 +144,6 @@ void LocationProvider::emitSubscribeFinished()
 	{
 		emit subscribeFinished(key);
 	}
-}
-
-QString LocationProvider::parseOutNode(QString xml)
-{
-	QXmlQuery query;
-	query.setFocus(xml);
-	query.setQuery("/node/node");
-
-	if(!query.isValid())
-		return 0;
-
-	query.evaluateTo(&xml);
-
-	if(xml.isEmpty() || xml.isNull())
-		return "";
-
-	QDomDocument doc;
-	doc.setContent(xml);
-
-	QDomNodeList nodes = doc.elementsByTagName("node");
-
-	if(!nodes.size()) return "";
-
-	QDomNode node = nodes.at(0);
-
-	return "/org/freedesktop/Gypsy/"+node.toElement().attribute("name");
 }
 
 void LocationProvider::getCoordinates()
@@ -212,7 +190,7 @@ void LocationProvider::fixStatusChanged(int)
 
 void LocationProvider::positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude)
 {
-  //FIXME: use fields correctly
+    //FIXME: use fields correctly
     qDebug() << "LocationProvider:" << "New coordinate values:";
     qDebug() << "\tfields:" << fields << endl
              << "\ttimestamp:" << timestamp << endl
@@ -229,14 +207,14 @@ void LocationProvider::positionChanged(int fields, int timestamp, double latitud
 
 void LocationProvider::courseChanged(int fields, int timestamp, double speed, double direction, double climb)
 {
-  //FIXME: use fields correctly
-  qDebug() << "LocationProvider:" << "New course values:";
-  qDebug() << "\tfields:" << fields << endl
-	   << "\ttimestamp:" << timestamp << endl
-	   << "\tspeed:" << speed << endl
-	   << "\tdirection:" << direction << endl
-	   << "\tclimb:" << climb << endl;
-  updateProperty(heading, direction);
+    //FIXME: use fields correctly
+    qDebug() << "LocationProvider:" << "New course values:";
+    qDebug() << "\tfields:" << fields << endl
+	     << "\ttimestamp:" << timestamp << endl
+	     << "\tspeed:" << speed << endl
+	     << "\tdirection:" << direction << endl
+	     << "\tclimb:" << climb << endl;
+    updateProperty(heading, direction);
 }
 
 
