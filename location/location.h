@@ -56,7 +56,7 @@ private:
     QString parseOutNode(QString xml);
     void updateProperty(const QString& key, const QVariant& value);
     void getCoordinates();
-  void getHeading();
+    void getHeading();
 
 private slots:
     void updateProperties();
