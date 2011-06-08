@@ -14,6 +14,7 @@
 
 #include <QDBusConnection>
 #include <QDBusServiceWatcher>
+#include <MGConfItem>
 
 #define OnBattery "Battery.OnBattery"
 #define ChargePercentage "Battery.ChargePercentage"
@@ -21,6 +22,7 @@
 #define TimeUntilLow "Battery.TimeUntilLow"
 #define TimeUntilFull "Battery.TimeUntilFull"
 #define IsCharging "Battery.IsCharging"
+#define ChargeBars "Battery.ChargeBars"
 
 
 //typedef OrgFreedesktopDeviceKitPowerInterface Power;
@@ -134,11 +136,31 @@ void DeviceKitProvider::updateProperties()
 	if(!batteryDevice) return;
 
 	Properties[OnBattery] = batteryDevice->state() == 2 || batteryDevice->state() == 3;
-	Properties[ChargePercentage] = batteryDevice->percentage();
+        Properties[ChargePercentage] = (int) batteryDevice->percentage();
 	Properties[LowBattery] = batteryDevice->percentage() < 10;
 	Properties[TimeUntilLow] = batteryDevice->timeToEmpty();
 	Properties[TimeUntilFull] = batteryDevice->timeToFull();
 	Properties[IsCharging] = batteryDevice->state() == 1 || batteryDevice->state() == 4;
+
+        MGConfItem *numChargeBars = new MGConfItem("/gconf/meego/apps/contextkit/battery/chargebars");
+        qDebug() << "DeviceKitPowerProvider" << "ChargeBars value is" << numChargeBars->value().toInt();
+
+        if(numChargeBars->value().toInt() < 0){
+            qDebug() << "DeviceKitPowerProvider" << "invalid /gconf/meego/apps/contextkit/battery/chargebars key";
+            numChargeBars->set(10); //set default to 10
+        }
+
+        QList<QVariant> bars;
+        int maxBars = numChargeBars->value().toInt();
+
+        if(batteryDevice->percentage() > 100 || batteryDevice->percentage() < 0) //If percentage is corrupted
+            bars.append(50/maxBars);
+        else
+            bars.append((int)batteryDevice->percentage()/maxBars);
+
+        bars.append(maxBars);
+
+        Properties[ChargeBars] = QVariant(bars);
 
 	foreach(QString key, subscribedProps)
 	{
