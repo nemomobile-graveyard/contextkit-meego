@@ -5,11 +5,16 @@ system(qdbusxml2cpp -N -c Device -p device_interface.h:device_interface.cpp Devi
 
 TEMPLATE = lib
 CONFIG += debug \
-    link_pkgconfig \
-    plugin
+link_pkgconfig \
+plugin \
+gconf-2.0 \
+mlite \
+dbus
 QT += dbus
-PKGCONFIG += contextprovider-1.0 contextsubscriber-1.0
-
+PKGCONFIG += gconf-2.0 \
+contextprovider-1.0 \
+contextsubscriber-1.0 \
+mlite
 TARGET = battery
 SOURCES += devicekitprovider.cpp device_interface.cpp power_interface.cpp
 HEADERS += devicekitprovider.h device_interface.h power_interface.h

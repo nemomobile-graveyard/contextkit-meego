@@ -6,4 +6,5 @@
   <key name="Battery.IsCharging"></key>
   <key name="Battery.TimeUntilLow"></key>
   <key name="Battery.TimeUntilFull"></key>
+  <key name="Battery.ChargeBars"></key>
 </provider>
