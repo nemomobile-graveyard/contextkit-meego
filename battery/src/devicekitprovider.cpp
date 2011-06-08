@@ -145,13 +145,14 @@ void DeviceKitProvider::updateProperties()
         MGConfItem *numChargeBars = new MGConfItem("/gconf/meego/apps/contextkit/battery/chargebars");
         qDebug() << "DeviceKitPowerProvider" << "ChargeBars value is" << numChargeBars->value().toInt();
 
-        if(numChargeBars->value().toInt() < 0){
+        if(numChargeBars->value().toInt() <= 0){
             qDebug() << "DeviceKitPowerProvider" << "invalid /gconf/meego/apps/contextkit/battery/chargebars key";
             numChargeBars->set(10); //set default to 10
         }
 
         QList<QVariant> bars;
         int maxBars = numChargeBars->value().toInt();
+
 
         if(batteryDevice->percentage() > 100 || batteryDevice->percentage() < 0) //If percentage is corrupted
             bars.append(50/maxBars);
