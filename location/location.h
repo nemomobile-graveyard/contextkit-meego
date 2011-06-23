@@ -12,14 +12,10 @@
 #ifndef LOCATIONPROVIDER_H
 #define LOCATIONPROVIDER_H
 
-#include <QVariant>
-#include <QStringList>
 #include <QObject>
 #include <iproviderplugin.h>
 #include <contextproperty.h>
-#include "gypsy_interface.h"
-
-class QDBusPendingCallWatcher;
+#include "skyhook_interface.h"
 
 using ContextSubscriber::IProviderPlugin;
 
@@ -42,16 +38,14 @@ public:
     virtual void blockUntilSubscribed(const QString&) {}
 
 private:
-    static const QString gypsyService;
+    static const QString skyhookService;
     static const QString satPositioningState;
     static const QString coordinates;
     static const QString heading;
 
     QHash<QString,QVariant> Properties;
     QSet<QString> subscribedProps;
-    OrgFreedesktopGypsyDeviceInterface *gpsDevice;
-    OrgFreedesktopGypsyPositionInterface *position;
-    OrgFreedesktopGypsyCourseInterface *course;
+    LocationSkyHook *gpsDevice;
     
     void updateProperty(const QString& key, const QVariant& value);
     void getCoordinates();
@@ -62,13 +56,9 @@ private slots:
     void emitSubscribeFinished();
     void onFirstSubscriberAppeared();
     void onLastSubscriberDisappeared();
+    void locationChanged(double latitude, double longitude, double hpe, double altitude, double speed, double bearing, double timestamp);
+    void satellitesChanged(QList<int> prns, QList<int> snrs, QList<int> elevations, QList<int> azimuths, QList<bool> inuse);
 
-    void fixStatusChanged(int);
-    void positionChanged(int fields, int timestamp, double latitude, double longitude, double altitude);
-  void courseChanged(int fields, int timestamp, double speed, double direction, double climb);
-    void connectionStatusChanged(bool);
-    void getPositionFinished(QDBusPendingCallWatcher* watcher);
-    void getCourseFinished(QDBusPendingCallWatcher* watcher);
 };
 
 
