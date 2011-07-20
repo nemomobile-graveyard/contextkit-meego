@@ -8,7 +8,7 @@ QT += dbus xmlpatterns
 PKGCONFIG += contextprovider-1.0 \
     contextsubscriber-1.0 \
     mlite
-TARGET = location
+TARGET = location-skyhook
 SOURCES += \
 location.cpp \
 skyhook_interface.cpp
