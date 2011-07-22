@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" doc:id="gypsy-client-interfaces">
+  <doc:doc>
+    <doc:summary>Gypsy Client Interface</doc:summary>
+  </doc:doc>
+  
+  <interface name="org.freedesktop.Gypsy.Accuracy">
+    <doc:doc>
+      <doc:para>
+        Accuracy objects are used to determine the accuracy of the current
+        position.  The accuracy is called "dilution of precision" with 1.0 being
+        the an ideal fix, and higher values meaning less accuracy.
+      </doc:para>
+    </doc:doc>
+    <method name="GetAccuracy">
+      <arg type="i" name="fields" direction="out">
+        <doc:doc>
+          <doc:summary>Bitfield specifying what fields are set.  1: Position, 2:
+            Horizontal, 4: Vertical.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="pdop" direction="out">
+        <doc:doc>
+          <doc:summary>The positional (3D) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="hdop" direction="out">
+        <doc:doc>
+          <doc:summary>The horizontal (2D) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="vdop" direction="out">
+        <doc:doc>
+          <doc:summary>The vertical (altitude) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+    </method>
+    
+    <signal name="AccuracyChanged">
+      <arg type="i" name="fields" direction="out">
+        <doc:doc>
+          <doc:summary>Bitfield specifying what fields are set.  1: Position, 2:
+          Horizontal, 4: Vertical.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="pdop" direction="out">
+        <doc:doc>
+          <doc:summary>The positional (3D) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="hdop" direction="out">
+        <doc:doc>
+          <doc:summary>The horizontal (2D) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="vdop" direction="out">
+        <doc:doc>
+          <doc:summary>The vertical (altitude) dilution of precision.</doc:summary>
+        </doc:doc>
+      </arg>
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.Gypsy.Course">
+    <method name="GetCourse">
+      <arg type="i" name="fields" direction="out" />
+      <arg type="i" name="timestamp" direction="out" />
+      <arg type="d" name="speed" direction="out" />
+      <arg type="d" name="direction" direction="out" />
+      <arg type="d" name="climb" direction="out" />
+    </method>
+
+    <signal name="CourseChanged">
+      <arg type="i" name="fields" />
+      <arg type="i" name="timestamp" />
+      <arg type="d" name="speed" />
+      <arg type="d" name="direction" />
+      <arg type="d" name="climb" />
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.Gypsy.Device">
+    <method name="SetStartOptions">
+      <arg type="a{sv}" name="options" direction="in" />
+       <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+    </method>
+    <method name="Start" />
+    <method name="Stop" />
+    
+    <method name="GetFixStatus">
+      <arg type="i" name="fixtype" direction="out" />
+    </method>
+
+    <method name="GetConnectionStatus">
+      <arg type="b" name="connected" direction="out" />
+    </method>
+
+    <signal name="FixStatusChanged">
+      <arg type="i" name="fixtype" />
+    </signal>
+
+    <signal name="ConnectionStatusChanged">
+      <arg type="b" name="connected" />
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.Gypsy.Position">
+    <doc:doc>
+      <doc:para>
+        Position objects are used to obtain the current position (longitude,
+        latitude, altitude) of the GPS.  The current position can be obtained
+        with <doc:ref type="method"
+          to="Position.GetPosition">GetPosition()</doc:ref>, and <doc:ref
+          type="signal" to="Position::PositionChanged">PositionChanged</doc:ref>
+        signals are emitted when the position changes.
+      </doc:para>
+    </doc:doc>
+    <method name="GetPosition">
+      <arg type="i" name="fields" direction="out">
+        <doc:doc>
+          <doc:summary>Bitfield specifying what fields are set.  1: None, 2:
+          Longitude, 4: Latitude, 8: Altitude.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="i" name="timestamp" direction="out">
+        <doc:doc>
+          <doc:summary>The timestamp that this position was
+          determined.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="latitude" direction="out">
+        <doc:doc>
+          <doc:summary>The latitude in fractional degrees.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="longitude" direction="out">
+        <doc:doc>
+          <doc:summary>The longitude in fractional degrees.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="altitude" direction="out">
+        <doc:doc>
+          <doc:summary>The altitude in metres.</doc:summary>
+        </doc:doc>
+      </arg>
+    </method>
+
+    <signal name="PositionChanged">
+      <arg type="i" name="fields">
+        <doc:doc>
+          <doc:summary>Bitfield specifying what fields are set.  1: None, 2:
+          Longitude, 4: Latitude, 8: Altitude.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="i" name="timestamp">
+        <doc:doc>
+          <doc:summary>The timestamp that this position was determined.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="latitude">
+        <doc:doc>
+          <doc:summary>The latitude in fractional degrees.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="longitude">
+        <doc:doc>
+          <doc:summary>The longitude in fractional degrees.</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg type="d" name="altitude">
+        <doc:doc>
+          <doc:summary>The altitude in metres.</doc:summary>
+        </doc:doc>
+      </arg>
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.Gypsy.Satellite">
+    <method name="GetSatellites">
+      <arg type="a(ubuuu)" name="satellites" direction="out" />
+      <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="SatInfoArray"/>
+    </method>
+
+    <signal name="SatellitesChanged">
+      <arg type="a(ubuuu)" name="satellites" />
+      <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="SatInfoArray"/>
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.Gypsy.Time">
+    <method name="GetTime">
+      <arg type="i" name="timestamp" direction="out" />
+    </method>
+
+    <signal name="TimeChanged">
+      <arg type="i" name="timestamp" />
+    </signal>
+  </interface>
+</node>
