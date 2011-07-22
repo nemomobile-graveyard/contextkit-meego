@@ -8,6 +8,7 @@ SUBDIRS += battery \
     internet \
     bluetooth \
     media \
+    location \
     location-skyhook
 
 OTHER_FILES +=

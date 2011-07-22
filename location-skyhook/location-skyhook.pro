@@ -16,7 +16,7 @@ HEADERS += \
 location.h \
 skyhook_interface.h
 target.path = $$CONTEXTKIT_SUBSCRIBER_PLUGIN_PATH
-configuration.files = location.context
+configuration.files = location-skyhook.context
 configuration.path = $$CONTEXTKIT_PROVIDER_CONTEXT_PATH
 INSTALLS += target \
     configuration
