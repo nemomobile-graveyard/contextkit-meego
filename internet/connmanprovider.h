@@ -13,7 +13,7 @@
 #define CONNMANPROVIDER_H
 
 #include <iproviderplugin.h>
-#include <networklist.h>
+#include <networkmanager.h>
 #include <QSet>
 #include <QMap>
 #include <QString>
@@ -30,11 +30,11 @@ extern "C"
 class ConnmanProvider : public IProviderPlugin
 {
   Q_OBJECT;
-  
+
 public:
   ConnmanProvider();
   virtual ~ConnmanProvider();
-  
+
   virtual void subscribe(QSet<QString> keys);
   virtual void unsubscribe(QSet<QString> keys);
   virtual void blockUntilReady() {}
