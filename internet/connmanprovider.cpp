@@ -2,6 +2,7 @@
  *
  * contextkit-meego
  * Copyright © 2010, Intel Corporation.
+ * Copyright © 2012, Jolla.
  *
  * This program is licensed under the terms and conditions of the
  * Apache License, version 2.0.  The full text of the Apache License is at
@@ -39,37 +40,38 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
   m_nameMapper["ethernet"] = "ethernet";
 
   m_nameMapper["offline"] = "disconnected";
+  m_nameMapper["idle"] = "disconnected";
   m_nameMapper["online"] = "connected";
-  m_nameMapper["connected"] = "connected";
+  m_nameMapper["ready"] = "connected";
 
   //hack
   m_properties[trafficIn] = 20;
   m_properties[trafficOut] = 20;
   m_timerId = startTimer(5*1000);
-  
+
   QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
-  m_networkListModel = new NetworkListModel();
-  m_properties[networkType] = map(m_networkListModel->defaultTechnology());
-  m_properties[networkState] = map(m_networkListModel->state());
+  m_networkManager = new NetworkManager();
+  m_properties[networkType] = map("gprs");
+  m_properties[networkState] = map(m_networkManager->state());
 
-  if(m_networkListModel->defaultRoute())
+  if(m_networkManager->defaultRoute())
   {
-      activeService = m_networkListModel->defaultRoute();
+      activeService = m_networkManager->defaultRoute();
 
-      connect(activeService,SIGNAL(propertyChanged()),this,SLOT(propertiesChanged()));
+      connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
+      connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
 
-      m_properties[signalStrength] = m_networkListModel->defaultRoute()->strength();
-      m_properties[networkName] = m_networkListModel->defaultRoute()->name();
+      m_properties[signalStrength] = m_networkManager->defaultRoute()->strength();
+      m_properties[networkName] = m_networkManager->defaultRoute()->name();
+      m_properties[networkType] = map(activeService->type());
   }
 
-  connect(m_networkListModel, SIGNAL(defaultTechnologyChanged(QString)),
-	  this, SLOT(defaultTechnologyChanged(QString)));
-  connect(m_networkListModel, SIGNAL(stateChanged(QString)),
+  connect(m_networkManager, SIGNAL(stateChanged(QString)),
 	  this, SLOT(stateChanged(QString)));
-  connect(m_networkListModel, SIGNAL(defaultRouteChanged(NetworkItemModel*)),
-          this, SLOT(defaultRouteChanged(NetworkItemModel*)));
-  
+  connect(m_networkManager, SIGNAL(defaultRouteChanged(NetworkService*)),
+          this, SLOT(defaultRouteChanged(NetworkService*)));
+
   //sadly, QVariant is not a registered metatype
   qRegisterMetaType<QVariant>("QVariant");
 
@@ -105,7 +107,7 @@ void ConnmanProvider::subscribe(QSet<QString> keys)
 void ConnmanProvider::unsubscribe(QSet<QString> keys)
 {
   qDebug() << "ConnmanProvider::unsubscribe(" << QStringList(keys.toList()).join(", ") << ")";
-  
+
   m_subscribedProperties.subtract(keys);
 }
 
@@ -124,7 +126,7 @@ QString ConnmanProvider::map(const QString &input) const
   return m_nameMapper[input];
 }
 
-void ConnmanProvider::signalStrengthChanged(int strength)
+void ConnmanProvider::signalStrengthChanged(uint strength)
 {
     if(!activeService) return;
 
@@ -160,12 +162,12 @@ void ConnmanProvider::defaultTechnologyChanged(QString Technology)
   }
 }
 
-void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
+void ConnmanProvider::defaultRouteChanged(NetworkService *item)
 {
     if(activeService)
     {
-        activeService->disconnect(this,SLOT(propertiesChanged()));
-        activeService->disconnect(this,SLOT(signalStrengthChanged(int)));
+        activeService->disconnect(this,SLOT(nameChanged(QString)));
+        activeService->disconnect(this,SLOT(signalStrengthChanged(uint)));
     }
 
     activeService = item;
@@ -176,8 +178,8 @@ void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
         m_properties[networkName] = item->name();
         m_properties[signalStrength] = item->strength();
 
-        connect(activeService,SIGNAL(strengthChanged(int)),this,SLOT(signalStrengthChanged(int)));
-        connect(activeService,SIGNAL(propertyChanged()),this,SLOT(propertiesChanged()));
+        connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
+        connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
     }
     else
         m_properties[signalStrength] = 0;
@@ -191,9 +193,9 @@ void ConnmanProvider::defaultRouteChanged(NetworkItemModel *item)
     }
 }
 
-void ConnmanProvider::propertiesChanged()
+void ConnmanProvider::nameChanged(const QString &name)
 {
-    m_properties[networkName] = activeService->name();
+    m_properties[networkName] = name;
     if (m_subscribedProperties.contains(networkName)) {
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
     }

@@ -2,6 +2,7 @@
  *
  * contextkit-meego
  * Copyright © 2010, Intel Corporation.
+ * Copyright © 2012, Jolla.
  *
  * This program is licensed under the terms and conditions of the
  * Apache License, version 2.0.  The full text of the Apache License is at
@@ -55,8 +56,8 @@ private:
   ;
   QSet<QString> m_subscribedProperties;
   QVariantMap m_properties;
-  NetworkListModel *m_networkListModel;
-  NetworkItemModel *activeService;
+  NetworkManager *m_networkManager;
+  NetworkService *activeService;
   int m_timerId;
   QMap<QString, QString> m_nameMapper;
 
@@ -64,10 +65,10 @@ private slots:
   void emitSubscribeFinished();
   void emitChanged();
   void defaultTechnologyChanged(QString Technology);
-  void defaultRouteChanged(NetworkItemModel* item);
+  void defaultRouteChanged(NetworkService* item);
   void stateChanged(QString State);
-  void signalStrengthChanged(int);
-  void propertiesChanged();
+  void signalStrengthChanged(uint);
+  void nameChanged(const QString &name);
 };
 
 #endif //CONNMANPROVIDER_H
