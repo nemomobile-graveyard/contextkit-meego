@@ -56,7 +56,7 @@ private:
   QSet<QString> m_subscribedProperties;
   QVariantMap m_properties;
   NetworkListModel *m_networkListModel;
-  NetworkItemModel *activeWifi;
+  NetworkItemModel *activeService;
   int m_timerId;
   QMap<QString, QString> m_nameMapper;
 
