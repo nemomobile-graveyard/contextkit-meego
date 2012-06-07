@@ -66,9 +66,7 @@ private slots:
   void defaultTechnologyChanged(QString Technology);
   void defaultRouteChanged(NetworkItemModel* item);
   void stateChanged(QString State);
-  void findActiveWifiConnection();
   void signalStrengthChanged(int);
-  void countChangedSlot(int) { findActiveWifiConnection(); }
   void propertiesChanged();
 };
 
