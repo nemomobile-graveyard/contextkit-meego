@@ -130,7 +130,7 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 {
     if(!activeService) return;
 
-    qDebug()<<"signal strength for: "<<activeService->name()<<" "<<strength;
+    qDebug()<<"ConnmanProvider::signalStrengthChanged() - signal strength for: "<<activeService->name()<<" "<<strength;
 
     m_properties[signalStrength] = strength;
 
@@ -142,6 +142,7 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 void ConnmanProvider::emitSubscribeFinished()
 {
   foreach (QString key, m_subscribedProperties) {
+    qDebug() << "emit subscribedFinished(" << key << ")";
     emit subscribeFinished(key);
   }
 }
@@ -149,13 +150,14 @@ void ConnmanProvider::emitSubscribeFinished()
 void ConnmanProvider::emitChanged()
 {
   foreach (QString key, m_subscribedProperties) {
+    qDebug() << "ConnmanProvider::emitChanged(): " << key << "=" << m_properties[key];
     emit valueChanged(key, QVariant(m_properties[key]));
   }
 }
 
 void ConnmanProvider::defaultTechnologyChanged(QString Technology)
 {
-  //qDebug() << "defaultTechnologyChanged: " << Technology;
+  qDebug() << "ConnmanProvider::defaultTechnologyChanged: " << Technology;
   m_properties[networkType] = map(Technology);
   if (m_subscribedProperties.contains(networkType)) {
     emit valueChanged(networkType, QVariant(m_properties[networkType]));
@@ -185,16 +187,19 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
         m_properties[signalStrength] = 0;
 
     if (m_subscribedProperties.contains(signalStrength)) {
+      qDebug() << "connmanprovider.cpp:190:emit valueChanged(strength)";
       emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
     }
 
     if (m_subscribedProperties.contains(networkName)) {
+      qDebug() << "connmanprovider.cpp:195:emit valueChanged(naetworkName)";
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
     }
 }
 
 void ConnmanProvider::nameChanged(const QString &name)
 {
+    qDebug() << "ConnmanProvider::nameChanged(" << name << ")";
     m_properties[networkName] = name;
     if (m_subscribedProperties.contains(networkName)) {
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
@@ -203,6 +208,7 @@ void ConnmanProvider::nameChanged(const QString &name)
 
 void ConnmanProvider::stateChanged(QString State)
 {
+    qDebug() << "ConnmanProvider::stateChanged(" << State << ")";
   m_properties[networkState] = map(State);
   if (m_subscribedProperties.contains(networkState)) {
     emit valueChanged(networkState, QVariant(m_properties[networkState]));
