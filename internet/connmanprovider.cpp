@@ -51,7 +51,7 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
 
   QMetaObject::invokeMethod(this, "ready", Qt::QueuedConnection);
 
-  m_networkManager = new NetworkManager();
+  m_networkManager = NetworkManagerFactory::createInstance();;
   m_properties[networkType] = map("gprs");
   m_properties[networkState] = map(m_networkManager->state());
 
