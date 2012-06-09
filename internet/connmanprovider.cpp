@@ -183,6 +183,14 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
     }
     if (item) {
         DBG << "new default route: " << item->name();
+        QString ntype = map(item->type());
+        if (m_properties[networkType] != ntype) {
+            if (m_subscribedProperties.contains(networkType)) {
+                m_properties[networkType] = ntype;
+                DBG << "networkType has changed to " << ntype;
+                emit valueChanged(networkType, QVariant(m_properties[networkType]));
+            }
+        }
     } else {
         DBG << "new default route: NULL";
     }
