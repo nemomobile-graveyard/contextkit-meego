@@ -15,7 +15,7 @@
 #include <QStringList>
 #include <QVariant>
 
-#define DBG qDebug() << "__FILE__:__LINE__:"
+#define DBG qDebug() << __FILE__ << ":" << __LINE__ << ":"
 
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
