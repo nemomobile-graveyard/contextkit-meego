@@ -15,6 +15,8 @@
 #include <QStringList>
 #include <QVariant>
 
+#define DBG qDebug() << "__FILE__:__LINE__:"
+
 IProviderPlugin* pluginFactory(const QString& constructionString)
 {
   Q_UNUSED(constructionString)
@@ -31,7 +33,7 @@ const QString ConnmanProvider::trafficOut("Internet.TrafficOut");
 
 ConnmanProvider::ConnmanProvider(): activeService(NULL)
 {
-  qDebug() << "ConnmanProvider::ConnmanProvider()";
+  DBG << "ConnmanProvider::ConnmanProvider()";
 
   m_nameMapper["wifi"] = "WLAN";
   m_nameMapper["gprs"] = "GPRS";
@@ -59,6 +61,7 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
   {
       activeService = m_networkManager->defaultRoute();
 
+      DBG << "connecting signals from service" << activeService->name();
       connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
       connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
 
@@ -91,7 +94,7 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
 
 ConnmanProvider::~ConnmanProvider()
 {
-  qDebug() << "ConnmanProvider::~ConnmanProvider()";
+  DBG << "ConnmanProvider::~ConnmanProvider()";
 }
 
 void ConnmanProvider::subscribe(QSet<QString> keys)
@@ -130,7 +133,7 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 {
     if(!activeService) return;
 
-    qDebug()<<"ConnmanProvider::signalStrengthChanged() - signal strength for: "<<activeService->name()<<" "<<strength;
+    DBG << "ConnmanProvider::signalStrengthChanged() - signal strength for: "<<activeService->name()<<" "<<strength;
 
     m_properties[signalStrength] = strength;
 
@@ -142,7 +145,7 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 void ConnmanProvider::emitSubscribeFinished()
 {
   foreach (QString key, m_subscribedProperties) {
-    qDebug() << "emit subscribedFinished(" << key << ")";
+    DBG << "emit subscribedFinished(" << key << ")";
     emit subscribeFinished(key);
   }
 }
@@ -150,14 +153,14 @@ void ConnmanProvider::emitSubscribeFinished()
 void ConnmanProvider::emitChanged()
 {
   foreach (QString key, m_subscribedProperties) {
-    qDebug() << "ConnmanProvider::emitChanged(): " << key << "=" << m_properties[key];
+    DBG << "ConnmanProvider::emitChanged(): " << key << "=" << m_properties[key];
     emit valueChanged(key, QVariant(m_properties[key]));
   }
 }
 
 void ConnmanProvider::defaultTechnologyChanged(QString Technology)
 {
-  qDebug() << "ConnmanProvider::defaultTechnologyChanged: " << Technology;
+  DBG << "ConnmanProvider::defaultTechnologyChanged: " << Technology;
   m_properties[networkType] = map(Technology);
   if (m_subscribedProperties.contains(networkType)) {
     emit valueChanged(networkType, QVariant(m_properties[networkType]));
@@ -168,10 +171,21 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
 {
     if(activeService)
     {
+        DBG << "disconnecting from " << activeService->name();
         activeService->disconnect(this,SLOT(nameChanged(QString)));
         activeService->disconnect(this,SLOT(signalStrengthChanged(uint)));
     }
 
+    if (activeService) {
+        DBG << "old default route: " << activeService->name();
+    } else {
+        DBG << "old default route: NULL";
+    }
+    if (item) {
+        DBG << "new default route: " << item->name();
+    } else {
+        DBG << "new default route: NULL";
+    }
     activeService = item;
 
 
@@ -180,6 +194,7 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
         m_properties[networkName] = item->name();
         m_properties[signalStrength] = item->strength();
 
+        DBG << "connecting to " << activeService->name();
         connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
         connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
     }
@@ -187,19 +202,19 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
         m_properties[signalStrength] = 0;
 
     if (m_subscribedProperties.contains(signalStrength)) {
-      qDebug() << "connmanprovider.cpp:190:emit valueChanged(strength)";
+      DBG << "emit valueChanged(strength)";
       emit valueChanged(signalStrength, QVariant(m_properties[signalStrength]));
     }
 
     if (m_subscribedProperties.contains(networkName)) {
-      qDebug() << "connmanprovider.cpp:195:emit valueChanged(naetworkName)";
+      DBG << "emit valueChanged(naetworkName)";
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
     }
 }
 
 void ConnmanProvider::nameChanged(const QString &name)
 {
-    qDebug() << "ConnmanProvider::nameChanged(" << name << ")";
+    DBG << "ConnmanProvider::nameChanged(" << name << ")";
     m_properties[networkName] = name;
     if (m_subscribedProperties.contains(networkName)) {
       emit valueChanged(networkName, QVariant(m_properties[networkName]));
@@ -208,7 +223,7 @@ void ConnmanProvider::nameChanged(const QString &name)
 
 void ConnmanProvider::stateChanged(QString State)
 {
-    qDebug() << "ConnmanProvider::stateChanged(" << State << ")";
+  DBG << "ConnmanProvider::stateChanged(" << State << ")";
   m_properties[networkState] = map(State);
   if (m_subscribedProperties.contains(networkState)) {
     emit valueChanged(networkState, QVariant(m_properties[networkState]));
