@@ -61,7 +61,6 @@ ConnmanProvider::ConnmanProvider(): activeService(NULL)
   {
       activeService = m_networkManager->defaultRoute();
 
-      DBG << "connecting signals from service" << activeService->name();
       connect(activeService,SIGNAL(nameChanged(QString)),this,SLOT(nameChanged(QString)));
       connect(activeService,SIGNAL(strengthChanged(uint)),this,SLOT(signalStrengthChanged(uint)));
 
@@ -133,8 +132,6 @@ void ConnmanProvider::signalStrengthChanged(uint strength)
 {
     if(!activeService) return;
 
-    DBG << "ConnmanProvider::signalStrengthChanged() - signal strength for: "<<activeService->name()<<" "<<strength;
-
     m_properties[signalStrength] = strength;
 
     if (m_subscribedProperties.contains(signalStrength)) {
@@ -167,11 +164,8 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
         activeService->disconnect(this,SLOT(signalStrengthChanged(uint)));
     }
 
-    if (activeService) {
-        DBG << "old default route: " << activeService->name();
-    } else {
-        DBG << "old default route: NULL";
-    }
+    activeService = item;
+
     if (item) {
         DBG << "new default route: " << item->name();
         QString ntype = map(item->type());
@@ -182,14 +176,7 @@ void ConnmanProvider::defaultRouteChanged(NetworkService *item)
                 emit valueChanged(networkType, QVariant(m_properties[networkType]));
             }
         }
-    } else {
-        DBG << "new default route: NULL";
-    }
-    activeService = item;
 
-
-    if(item)
-    {
         m_properties[networkName] = item->name();
         m_properties[signalStrength] = item->strength();
 
