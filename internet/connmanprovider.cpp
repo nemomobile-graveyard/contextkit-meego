@@ -158,15 +158,6 @@ void ConnmanProvider::emitChanged()
   }
 }
 
-void ConnmanProvider::defaultTechnologyChanged(QString Technology)
-{
-  DBG << "ConnmanProvider::defaultTechnologyChanged: " << Technology;
-  m_properties[networkType] = map(Technology);
-  if (m_subscribedProperties.contains(networkType)) {
-    emit valueChanged(networkType, QVariant(m_properties[networkType]));
-  }
-}
-
 void ConnmanProvider::defaultRouteChanged(NetworkService *item)
 {
     if(activeService)

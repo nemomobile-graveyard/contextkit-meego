@@ -64,7 +64,6 @@ private:
 private slots:
   void emitSubscribeFinished();
   void emitChanged();
-  void defaultTechnologyChanged(QString Technology);
   void defaultRouteChanged(NetworkService* item);
   void stateChanged(QString State);
   void signalStrengthChanged(uint);
